@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Inicial. IPE II Cultura emprendedora</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between font-sans pb-10">
+
+    <header class="bg-slate-900 border-b border-red-600 p-4 shadow-lg">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="inline-block w-4 h-4 rounded-full bg-red-600 animate-pulse"></span>
+                <h1 class="text-xl font-bold tracking-wider uppercase text-slate-100">ON AIR | Plató IPE II</h1>
+            </div>
+            <span class="text-sm text-slate-400 font-mono">Evaluación Inicial. IPE II Cultura emprendedora</span>
+        </div>
+    </header>
+
+    <main class="max-w-3xl w-full mx-auto p-4 flex-grow">
+
+        <section id="section-datos" class="bg-slate-800 rounded-lg p-6 border border-slate-700 shadow-2xl mb-6">
+            <h2 class="text-lg font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-2">📋 Datos de Producción (Ficha del Alumno)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Nombre y Apellidos</label>
+                    <input type="text" id="nombre" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:outline-none focus:border-amber-400" placeholder="Nombre completo">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Grupo / Ciclo</label>
+                    <input type="text" id="grupo" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:outline-none focus:border-amber-400" placeholder="Ej: GM Video DJ / GS Sonido">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Fecha</label>
+                    <input type="date" id="fecha" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:outline-none focus:border-amber-400">
+                </div>
+            </div>
+            <button onclick="iniciarCuestionario()" class="mt-4 w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 rounded transition">Iniciar Cuestionario</button>
+        </section>
+
+        <section id="section-cuestionario" class="hidden bg-slate-800 rounded-lg p-6 border border-slate-700 shadow-2xl">
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-16 h-16 bg-slate-900 border-2 border-amber-400 rounded-full flex items-center justify-center text-3xl shadow-inner shrink-0">
+                    🎬
+                </div>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 relative w-full">
+                    <p class="text-xs text-amber-400 font-bold mb-1">DIRECTOR DE PRODUCCIÓN / PRESENTADOR:</p>
+                    <p id="pregunta-texto" class="text-slate-200 font-medium text-lg"></p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <textarea id="respuesta-input" rows="5" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-amber-400 resize-none" placeholder="Escribe tu respuesta aquí..."></textarea>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span id="contador-pregunta" class="text-xs text-slate-400 font-mono">Pregunta 1 de 21</span>
+                <button onclick="siguientePregunta()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 rounded transition">Siguiente Pregunta 🎬</button>
+            </div>
+        </section>
+
+        <section id="section-final" class="hidden bg-slate-800 rounded-lg p-8 border border-slate-700 shadow-2xl text-center">
+            <div class="text-6xl mb-4">🎙️✨</div>
+            <h2 class="text-2xl font-bold text-amber-400 mb-2">¡Corte y confección! Respuestas registradas.</h2>
+            <p class="text-slate-300 mb-6">Muchísimas gracias por completar el cuestionario. ¡Mucho ánimo y éxitos para el curso que comienza!</p>
+
+            <div id="informe-resumen" class="bg-slate-900 p-4 rounded border border-slate-700 text-left mb-6 font-mono text-sm">
+                </div>
+
+            <button onclick="descargarPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded text-lg transition inline-flex items-center gap-2">
+                📄 Descargar Informe PDF
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // Preguntas extraídas exactamente del documento oficial
+        const preguntas = [
+            "1. Cita algunas herramientas que conozcas para la búsqueda de empleo.", // [cite: 3]
+            "2. ¿Sabrías decir al menos cinco canales dónde podrías buscar empleo?", // [cite: 4]
+            "3. Como definirías lo que es un Curriculum Vitae. ¿Has hecho alguno? ¿Has entregado alguno alguna vez?", // [cite: 5]
+            "4. ¿Sabes que es un portfolio? Defínelo con tus palabras. ¿Tienes uno?", // [cite: 6]
+            "5. Pon ejemplos de tres actitudes que crees que tienes, que podrían ser una ventaja a la hora de encontrar un empleo, es decir, que valorarían las empresas.", // [cite: 7]
+            "6. Pon algún ejemplo de una característica que te define que crees que debes mejorar para tener más opciones de que te contraten las empresas.", // [cite: 8]
+            "7. ¿Has hecho alguna vez una entrevista de trabajo? Podrías citar algunos consejos para poder pasar una entrevista con éxito. Si es el caso, ¿Te acuerdas de alguna de las preguntas que te hicieron? ¿Alguna que te haya llamado especialmente la atención?", // [cite: 9, 10, 11]
+            "8. ¿Qué entiendes por marca personal?", // [cite: 12]
+            "9. ¿Tienes claros los objetivos laborales que quieres alcanzar? ¿Dónde y/o de que te gustaría trabajar?", // [cite: 13]
+            "10. Cita al menos cinco competencias que creas que valoran mucho las empresas en la actualidad en sus trabajadores y trabajadoras ¿Sabrías definirlas?", // [cite: 14]
+            "11. ¿Qué entiendes por iniciativa emprendedora?", // [cite: 15]
+            "12. ¿Qué entiendes por innovación?", // [cite: 16]
+            "13. ¿Se te ocurre alguna acción dentro de tu campo profesional que contribuya a una sociedad más sostenible que mejore el bienestar de los individuos?", // [cite: 17]
+            "14. Sabrías citar algún factor de nuestro entorno que nos pueda afectar como ciudadanos.", // [cite: 18]
+            "15. Comenta las fuentes de financiación conoces.", // [cite: 19]
+            "16. Explica con tus palabras el significado de: Ingresos, Costes, Precio, Beneficio, Inversión, Tipo de interés, Patrimonio, Impuesto de Sociedades e IVA.", // [cite: 20-29]
+            "17. Cita alguna forma jurídica de empresas que conozcas.", // [cite: 30]
+            "18. Indica un Ejemplo de una acción de marketing.", // [cite: 31]
+            "19. Teniendo en cuenta que en contabilidad se denominan cuentas de activo a todas los elementos patrimoniales que son bienes y derechos de cobro para la empresa, y pasivo a los elementos patrimoniales que suponen una obligación de pago o deuda para la misma, clasifica los siguientes elementos patrimoniales:\n- Dinero en caja.\n- Ordenadores para la venta.\n- Mobiliario.\n- Deuda de un cliente.\n- Elementos de transporte.\n- Deudas con el banco.\n- Factura pendiente de cobro.\n- Factura pendiente de pago.\n- Proveedores.\n- Clientes.\n- Dinero depositado en cuenta bancaria.\n- Adquisición de acciones de otra compañía.", // [cite: 32-44]
+            "20. Una empresa ofrece servicios a 15 euros, tiene unos 100 clientes a la semana. Sus costes fijos por semana son de 300 euros y a eso se debe añadir unos costes variables en función del servicio prestado de 5 euros. ¿Cuál es el beneficio semanal que obtiene la empresa? ¿Cuál es el beneficio que obtiene por servicio?", // [cite: 45-47]
+            "21. Cita algún aspecto que te gustaría ver, conocer, hacer, visitar, etc… este curso." // [cite: 48]
+        ];
+
+        let indiceActual = 0;
+        const respuestas = [];
+
+        function iniciarCuestionario() {
+            const nombre = document.getElementById('nombre').value;
+            const grupo = document.getElementById('grupo').value;
+            const fecha = document.getElementById('fecha').value;
+
+            if (!nombre || !grupo || !fecha) {
+                alert('Por favor, rellena todos los datos de identificación antes de comenzar.');
+                return;
+            }
+
+            document.getElementById('section-datos').classList.add('hidden');
+            document.getElementById('section-cuestionario').classList.remove('hidden');
+            cargarPregunta();
+        }
+
+        function cargarPregunta() {
+            document.getElementById('pregunta-texto').innerText = preguntas[indiceActual];
+            document.getElementById('contador-pregunta').innerText = `Pregunta ${indiceActual + 1} de ${preguntas.length}`;
+            document.getElementById('respuesta-input').value = respuestas[indiceActual] || '';
+        }
+
+        function siguientePregunta() {
+            const res = document.getElementById('respuesta-input').value;
+            respuestas[indiceActual] = res;
+
+            if (indiceActual < preguntas.length - 1) {
+                indiceActual++;
+                cargarPregunta();
+            } else {
+                finalizarCuestionario();
+            }
+        }
+
+        function finalizarCuestionario() {
+            document.getElementById('section-cuestionario').classList.add('hidden');
+            document.getElementById('section-final').classList.remove('hidden');
+
+            const respondidas = respuestas.filter(r => r && r.trim() !== "").length;
+            const resumenHTML = `<p><strong>Alumnado:</strong> ${document.getElementById('nombre').value}</p>
+                                 <p><strong>Grupo:</strong> ${document.getElementById('grupo').value}</p>
+                                 <p><strong>Preguntas respondidas:</strong> ${respondidas} de ${preguntas.length}</p>`;
+            document.getElementById('informe-resumen').innerHTML = resumenHTML;
+        }
+
+        function descargarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const nombre = document.getElementById('nombre').value;
+            const grupo = document.getElementById('grupo').value;
+            const fecha = document.getElementById('fecha').value;
+
+            doc.setFontSize(16);
+            doc.text("Evaluación Inicial. IPE II Cultura emprendedora", 10, 15);
+            doc.setFontSize(11);
+            doc.text(`Alumno/a: ${nombre}`, 10, 25);
+            doc.text(`Grupo: ${grupo}`, 10, 32);
+            doc.text(`Fecha: ${fecha}`, 10, 39);
+            doc.line(10, 43, 200, 43);
+
+            let y = 50;
+            preguntas.forEach((preg, idx) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                const pLines = doc.splitTextToSize(preg, 180);
+                doc.text(pLines, 10, y);
+                y += (pLines.length * 5) + 2;
+
+                doc.setFont(undefined, 'normal');
+                const respText = respuestas[idx] ? respuestas[idx] : "Sin respuesta";
+                const rLines = doc.splitTextToSize(`R: ${respText}`, 180);
+                doc.text(rLines, 10, y);
+                y += (rLines.length * 5) + 6;
+            });
+
+            doc.save(`Evaluacion_Inicial_IPE2_${nombre.replace(/\s+/g, '_')}.pdf`);
+        }
+    </script>
+</body>
+</html>
